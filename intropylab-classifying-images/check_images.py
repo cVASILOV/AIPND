@@ -25,64 +25,54 @@ from time import time, sleep
 from os import listdir
 
 # Imports classifier function for using CNN to classify images 
-from classifier import classifier 
+from classifier import classifier
 
 # Imports print functions that check the lab
 from print_functions_for_lab_checks import *
 
 # Main program function defined below
 def main():
-    # TODO: 1. Define start_time to measure total program runtime by
-    # collecting start time
-    start_time = None
-    
-    # TODO: 2. Define get_input_args() function to create & retrieve command
-    # line arguments
+    start_time = time()
     in_arg = get_input_args()
-    
-    # TODO: 3. Define get_pet_labels() function to create pet image labels by
-    # creating a dictionary with key=filename and value=file label to be used
-    # to check the accuracy of the classifier function
-    answers_dic = get_pet_labels()
+    print(f'args: {in_arg.dir} start time: {time() - start_time}')
 
-    # TODO: 4. Define classify_images() function to create the classifier 
-    # labels with the classifier function using in_arg.arch, comparing the 
-    # labels, and creating a dictionary of results (result_dic)
-    result_dic = classify_images()
-    
-    # TODO: 5. Define adjust_results4_isadog() function to adjust the results
-    # dictionary(result_dic) to determine if classifier correctly classified
-    # images as 'a dog' or 'not a dog'. This demonstrates if the model can
-    # correctly classify dog images as dogs (regardless of breed)
-    adjust_results4_isadog()
+    answers_dic = get_pet_labels(in_arg.dir)
+    result_dic = classify_images(in_arg.dir, answers_dic, in_arg.arch)
 
-    # TODO: 6. Define calculates_results_stats() function to calculate
-    # results of run and puts statistics in a results statistics
-    # dictionary (results_stats_dic)
-    results_stats_dic = calculates_results_stats()
-
-    # TODO: 7. Define print_results() function to print summary results, 
-    # incorrect classifications of dogs and breeds if requested.
-    print_results()
-
-    # TODO: 1. Define end_time to measure total program runtime
-    # by collecting end time
-    end_time = None
-
-    # TODO: 1. Define tot_time to computes overall runtime in
-    # seconds & prints it in hh:mm:ss format
-    tot_time = None
-    print("\n** Total Elapsed Runtime:", tot_time)
-
-
-
-# TODO: 2.-to-7. Define all the function below. Notice that the input 
-# parameters and return values have been left in the function's docstrings. 
-# This is to provide guidance for achieving a solution similar to the 
-# instructor provided solution. Feel free to ignore this guidance as long as 
-# you are able to achieve the desired outcomes with this lab.
+#     # TODO: 5. Define adjust_results4_isadog() function to adjust the results
+#     # dictionary(result_dic) to determine if classifier correctly classified
+#     # images as 'a dog' or 'not a dog'. This demonstrates if the model can
+#     # correctly classify dog images as dogs (regardless of breed)
+#     adjust_results4_isadog()
+#
+#     # TODO: 6. Define calculates_results_stats() function to calculate
+#     # results of run and puts statistics in a results statistics
+#     # dictionary (results_stats_dic)
+#     results_stats_dic = calculates_results_stats()
+#
+#     # TODO: 7. Define print_results() function to print summary results,
+#     # incorrect classifications of dogs and breeds if requested.
+#     print_results()
+#
+#     # TODO: 1. Define end_time to measure total program runtime
+#     # by collecting end time
+#     end_time = None
+#
+#     # TODO: 1. Define tot_time to computes overall runtime in
+#     # seconds & prints it in hh:mm:ss format
+#     tot_time = None
+#     print("\n** Total Elapsed Runtime:", tot_time)
+#
+#
+#
+# # TODO: 2.-to-7. Define all the function below. Notice that the input
+# # parameters and return values have been left in the function's docstrings.
+# # This is to provide guidance for achieving a solution similar to the
+# # instructor provided solution. Feel free to ignore this guidance as long as
+# # you are able to achieve the desired outcomes with this lab.
 
 def get_input_args():
+
     """
     Retrieves and parses the command line arguments created and defined using
     the argparse module. This function returns these arguments as an
@@ -98,10 +88,14 @@ def get_input_args():
     Returns:
      parse_args() -data structure that stores the command line arguments object  
     """
-    pass
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir', type=str, default='pet_images/')
+    parser.add_argument('--arch', type=str, default='vgg')
+    parser.add_argument('--dogfile', type=str, default='dognames.txt')
+    return parser.parse_args()
 
 
-def get_pet_labels():
+def get_pet_labels(image_dir):
     """
     Creates a dictionary of pet labels based upon the filenames of the image 
     files. Reads in pet filenames and extracts the pet image labels from the 
@@ -114,10 +108,14 @@ def get_pet_labels():
      petlabels_dic - Dictionary storing image filename (as key) and Pet Image
                      Labels (as value)  
     """
-    pass
+    image_files = listdir(image_dir)
+    images_dic = {}
+    for image in image_files:
+        images_dic[image] = image.replace('.jpg', '').replace('_',' ').lower()
+    return images_dic
 
 
-def classify_images():
+def classify_images(images_dir, petlabels_dic, model):
     """
     Creates classifier labels with classifier function, compares labels, and 
     creates a dictionary containing both labels and comparison of them to be
@@ -142,7 +140,14 @@ def classify_images():
                     idx 2 = 1/0 (int)   where 1 = match between pet image and 
                     classifer labels and 0 = no match between labels
     """
-    pass
+    results_dic = {}
+    for key, value in petlabels_dic.items():
+        label = " ".join(value.split(" ")[:-1])
+        classifier_result = classifier(images_dir+key,model)
+        classifier_result = classifier_result.lower()
+        results_dic[key] = [label, classifier_result, 1 if label in classifier_result else 0]
+        #print(f'{key}, label is: {label}, classifier label is: {classifier_result}, {label in classifier_result}')
+    return results_dic
 
 
 def adjust_results4_isadog():
